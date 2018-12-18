@@ -87,13 +87,6 @@ public class Main {
             index++;
             column++;
             row++;
-            System.out.println(mod);
-            if(mod < 3) {
-                mod++;
-            } else {
-                mod = 0;
-            }
-
             return sequence;
         }
     }
