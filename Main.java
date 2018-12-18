@@ -1,8 +1,103 @@
 import java.io.*;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Arrays;
 
 public class Main {
+
+    /**
+     * Iterator for rows in 2D array
+     */
+    public class Row implements Iterator {
+
+        int[][] arr;
+
+        int index;
+
+        public Row(){
+            index = 0;
+        }
+
+        public Row(int[][] arr){
+            index = 0;
+            this.arr = arr;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < arr.length;
+        }
+
+        @Override
+        public Object next() {
+            int[] sequence = new int[9];
+            for (int i = 0; i < arr.length; i++){
+                sequence[i] = arr[i][index];
+            }
+            index++;
+            return sequence;
+        }
+    }
+
+    /**
+     * Iterator for Columns in 2D array
+     */
+    public class Column extends Row{
+        public Column(int[][] arr){
+            index = 0;
+            this.arr = arr;
+        }
+
+        @Override
+        public Object next() {
+            int[] sequence = new int[9];
+            for (int i = 0; i < arr.length; i++){
+                sequence[i] = arr[index][i];
+            }
+            index++;
+            return sequence;
+        }
+    }
+
+    /**
+     * Iterator for small boxes in 2D array
+     */
+    public class Box extends Row{
+        int row,column,mod;
+        public Box(int[][] arr){
+            index = 0;
+            column = 0;
+            row = 0;
+            mod = 0;
+            this.arr = arr;
+        }
+        @Override
+        public Object next() {
+            int[] sequence = new int[9];
+            int count = 0;
+
+            for (int x = allignToGrid(column) ; x < (allignToGrid(column) + SMALL_GRID_SIZE); x++) {
+                for (int y = allignToGrid(row) ; y < (allignToGrid(row) + SMALL_GRID_SIZE); y++) {
+                    sequence[count] = arr[x][y];
+                    count++;
+
+                }
+            }
+
+            index++;
+            column++;
+            row++;
+            System.out.println(mod);
+            if(mod < 3) {
+                mod++;
+            } else {
+                mod = 0;
+            }
+
+            return sequence;
+        }
+    }
+
 
     public static final int BIG_GRID_SIZE = 9;
     public static final int SMALL_GRID_SIZE = 3;
@@ -19,12 +114,49 @@ public class Main {
             System.out.print("\n");
         }
     }
+
+    /**
+     * DeBug Message
+     * @param error
+     */
     public void fatalError(String error){
         System.err.println("\nFailed. " + error + "\n");
         System.exit(1);
 
 
     }
+
+    /**
+     * Check if there is any duplicates in a given sequence
+     * @param sequence
+     * @return true or falce
+     */
+    public boolean isSequenceValid(int[] sequence){
+        int x = 0b00000000;
+        for(int i = 0; i < sequence.length; i++){
+            x |= (1 << (sequence[i]-1));
+        }
+        return (x == (1<<9) - 1 ? true : false);
+    }
+
+    /**
+     * Check if there is Sudoku board is valid
+     * @param arr Sudoku board
+     * @return  true of false
+     */
+    public boolean isValid(int[][] arr){
+        Main.Box box = new Box(arr);
+        Main.Column column = new Column(arr);
+        Main.Row row = new Row(arr);
+
+        while (box.hasNext() | column.hasNext() | row.hasNext()) {
+            if(!(isSequenceValid((int[]) box.next()) & isSequenceValid((int[]) box.next()) & isSequenceValid((int[]) box.next()))){
+                return false;
+            };
+        }
+        return true;
+    }
+
     /**
      * Check if our Sudoku board is complete
      * @param sudokuBoard our current board/state of it
@@ -40,6 +172,7 @@ public class Main {
         }
         return true;
     }
+
 
     /**
      * Allig number to the grid's starting point
@@ -110,9 +243,9 @@ public class Main {
         int i,j;
         i = j = 0;
         if(numberOfTries == BIG_GRID_SIZE * SMALL_GRID_SIZE + SMALL_GRID_SIZE){
-            fatalError("Invalid input data. Out of range. bruteForce - line 112");
+            fatalError("Invalid input data. Out of range. bruteForce - line 222");
         }
-        if(boardFull(sudokuBoard)){
+        if(boardFull(sudokuBoard) | isValid(sudokuBoard)){
             //printSudokuBoard(sudokuBoard);
             return true;
         } else {
@@ -174,11 +307,11 @@ public class Main {
                     if(inRange(Integer.parseInt(line[2]))) {
                         sudokuBoard[(Integer.parseInt(line[0])) - 1][(Integer.parseInt(line[1])) - 1] = Integer.parseInt(line[2]);
                     } else {
-                        fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 173");
+                        fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 278");
                     }
 
                 } catch (ArrayIndexOutOfBoundsException | NumberFormatException e){
-                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 173");
+                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 278");
                 }
 
             }
@@ -189,7 +322,7 @@ public class Main {
                 if(inRange(Integer.parseInt(line[2]))){
                     sudokuBoard[(Integer.parseInt(line[0])) - 1][(Integer.parseInt(line[1])) - 1] = Integer.parseInt(line[2]);
                 } else {
-                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 187");
+                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 297");
                 }
 
             }
@@ -212,10 +345,11 @@ public class Main {
             if (args.length != 0) {
                 sudokuBoard = sudoku.readAll(args[0]);
             } else {
-                sudokuBoard = sudoku.readAll("");            }
+                sudokuBoard = sudoku.readAll("");
+            }
 
         } catch (FileNotFoundException | ArrayIndexOutOfBoundsException | NumberFormatException e){
-            sudoku.fatalError("File is missing or corrupted. main - line 211");
+            sudoku.fatalError("File is missing or corrupted. main - line 311");
         }
 
         //attempt to solve Sudoku
@@ -224,7 +358,7 @@ public class Main {
                 sudoku.printSudokuBoard(sudokuBoard);
             };
         } catch (Exception e) {
-            sudoku.fatalError("Unable to find a solution. main - line 222");
+            sudoku.fatalError("Unable to find a solution. main - line 333");
         }
 
 
