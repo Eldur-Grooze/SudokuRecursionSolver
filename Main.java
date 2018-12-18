@@ -245,9 +245,12 @@ public class Main {
         if(numberOfTries == BIG_GRID_SIZE * SMALL_GRID_SIZE + SMALL_GRID_SIZE){
             fatalError("Invalid input data. Out of range. bruteForce - line 222");
         }
-        if(boardFull(sudokuBoard) | isValid(sudokuBoard)){
-            //printSudokuBoard(sudokuBoard);
-            return true;
+        if(boardFull(sudokuBoard)){
+            if(isValid(sudokuBoard)){
+                return true;
+            } else {
+                fatalError("Sudoku board is not valid. bruteForce - line 250");
+            }
         } else {
             for(int x = 0; x < BIG_GRID_SIZE; x++){
                 for(int y = 0; y < BIG_GRID_SIZE; y++){
