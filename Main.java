@@ -1,94 +1,100 @@
 import java.io.*;
-import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Arrays;
 
 public class Main {
 
     /**
+     * BaseIterator to work with 2D array
+     */
+    public class BaseIterator{
+
+        int[][] sudokuBoard;
+        int index;
+        protected BaseIterator(int[][] sudokuBoard){
+            this.sudokuBoard = sudokuBoard;
+            this.index = 0;
+        }
+
+        protected boolean hasNext() {
+            return index < sudokuBoard.length;
+        }
+
+        public int next() {
+            return 1;
+        }
+    }
+
+    /**
      * Iterator for rows in 2D array
      */
-    public class Row implements Iterator {
+    public class RowIterator extends BaseIterator {
 
-        int[][] arr;
+        int row;
 
-        int index;
-
-        public Row(){
-            index = 0;
+        public RowIterator(int[][] sudokuBoard){
+            super(sudokuBoard);
         }
 
-        public Row(int[][] arr){
-            index = 0;
-            this.arr = arr;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return index < arr.length;
+        public void setRow(int row)
+        {
+            this.row = row;
+            this.index = 0;
         }
 
         @Override
-        public Object next() {
-            int[] sequence = new int[9];
-            for (int i = 0; i < arr.length; i++){
-                sequence[i] = arr[i][index];
-            }
-            index++;
-            return sequence;
+        public int next() {
+            return sudokuBoard[row][index++];
         }
     }
 
     /**
      * Iterator for Columns in 2D array
      */
-    public class Column extends Row{
-        public Column(int[][] arr){
-            index = 0;
-            this.arr = arr;
+    public class ColumnIterator extends BaseIterator{
+
+        int column;
+
+        public ColumnIterator(int[][] sudokuBoard){
+            super(sudokuBoard);
+        }
+
+        public void setRow(int column)
+        {
+            this.column = column;
+            this.index = 0;
         }
 
         @Override
-        public Object next() {
-            int[] sequence = new int[9];
-            for (int i = 0; i < arr.length; i++){
-                sequence[i] = arr[index][i];
-            }
-            index++;
-            return sequence;
+        public int next() {
+            return sudokuBoard[index++][column];
         }
     }
 
     /**
      * Iterator for small boxes in 2D array
      */
-    public class Box extends Row{
-        int row,column,mod;
-        public Box(int[][] arr){
+    public class BoxIterator extends BaseIterator{
+        int row, column;
+
+        public BoxIterator(int[][] sudokuBoard){
+            super(sudokuBoard);
+        }
+
+        public void setBox(int row, int column)
+        {
+            this.row = row;
+            this.column = column;
             index = 0;
-            column = 0;
-            row = 0;
-            mod = 0;
-            this.arr = arr;
         }
+
         @Override
-        public Object next() {
-            int[] sequence = new int[9];
-            int count = 0;
-
-            for (int x = allignToGrid(column) ; x < (allignToGrid(column) + SMALL_GRID_SIZE); x++) {
-                for (int y = allignToGrid(row) ; y < (allignToGrid(row) + SMALL_GRID_SIZE); y++) {
-                    sequence[count] = arr[x][y];
-                    count++;
-
-                }
-            }
-
+        public int next() {
+            int number = sudokuBoard[row + (index / 3)][column + (index % 3)];
             index++;
-            column++;
-            row++;
-            return sequence;
+            return number;
         }
+
     }
 
 
@@ -115,37 +121,48 @@ public class Main {
     public void fatalError(String error){
         System.err.println("\nFailed. " + error + "\n");
         System.exit(1);
-
-
     }
 
     /**
      * Check if there is any duplicates in a given sequence
-     * @param sequence
+     * @param
      * @return true or falce
      */
-    public boolean isSequenceValid(int[] sequence){
-        int x = 0b00000000;
-        for(int i = 0; i < sequence.length; i++){
-            x |= (1 << (sequence[i]-1));
+    public boolean isSequenceValid(BaseIterator iterator){
+        int x = 0;
+        while (iterator.hasNext()){
+            x |= (1 << (iterator.next()-1));
         }
-        return (x == (1<<9) - 1 ? true : false);
+        return x == (1<<BIG_GRID_SIZE) - 1;
     }
 
     /**
      * Check if there is Sudoku board is valid
-     * @param arr Sudoku board
+     * @param sudokuBoard Sudoku board
      * @return  true of false
      */
-    public boolean isValid(int[][] arr){
-        Main.Box box = new Box(arr);
-        Main.Column column = new Column(arr);
-        Main.Row row = new Row(arr);
-
-        while (box.hasNext() | column.hasNext() | row.hasNext()) {
-            if(!(isSequenceValid((int[]) box.next()) & isSequenceValid((int[]) box.next()) & isSequenceValid((int[]) box.next()))){
+    public boolean isValid(int[][] sudokuBoard){
+        RowIterator rowIt = new RowIterator(sudokuBoard);
+        for (int i = 0; i < BIG_GRID_SIZE; i++) {
+            rowIt.setRow(i);
+            if (!isSequenceValid(rowIt))
                 return false;
-            };
+        }
+
+        ColumnIterator columnIt = new ColumnIterator(sudokuBoard);
+        for (int i = 0; i < BIG_GRID_SIZE; i++) {
+            rowIt.setRow(i);
+            if (!isSequenceValid(columnIt))
+                return false;
+        }
+
+        BoxIterator boxIt = new BoxIterator(sudokuBoard);
+        for (int x = 0; x < BIG_GRID_SIZE; x+=SMALL_GRID_SIZE) {
+            for (int y = 0; y < BIG_GRID_SIZE; y += SMALL_GRID_SIZE) {
+                boxIt.setBox(x, y);
+                if (!isSequenceValid(boxIt))
+                    return false;
+            }
         }
         return true;
     }
@@ -238,12 +255,13 @@ public class Main {
         if(numberOfTries == BIG_GRID_SIZE * SMALL_GRID_SIZE + SMALL_GRID_SIZE){
             fatalError("Invalid input data. Out of range. bruteForce - line 222");
         }
-        if(boardFull(sudokuBoard)){
+        if(boardFull(sudokuBoard) ){
             if(isValid(sudokuBoard)){
                 return true;
             } else {
                 fatalError("Sudoku board is not valid. bruteForce - line 250");
             }
+
         } else {
             for(int x = 0; x < BIG_GRID_SIZE; x++){
                 for(int y = 0; y < BIG_GRID_SIZE; y++){
