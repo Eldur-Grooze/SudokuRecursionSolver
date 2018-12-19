@@ -1,6 +1,6 @@
 #!/bin/bash
 
-printf "\nCompile java programm. Executing javac Main.java\n"
+printf "\nCompile java program. Executing javac Main.java\n"
 javac Main.java
 printf "Ready.\n"
 if [[ $1 == "h" ]]; then
@@ -10,7 +10,7 @@ if [[ $1 == "h" ]]; then
   printf "Format for the entries in the given file should be row_num,col_num,val for the\n"
   printf "values that are not default, the rest is assumed empty.\n\n"
   printf "In case of absence of file's name, the option will be given to entry values through your console.\n\n"
-  printf "5 test files are provided for testing this small programm.\n"
+  printf "Test files are provided for testing this small program.\n"
   printf "twoInBoxRow.txt - Sudoku puzzle with repeating values in the same row and box, which is against rules.\n"
   printf "empty.txt - empty file with no entries in it.\n"
   printf "solved.txt - file with invalid Sudoku board.\n"
