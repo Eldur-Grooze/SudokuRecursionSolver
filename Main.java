@@ -159,7 +159,7 @@ public class Main {
         for (int i = 0; i < BIG_GRID_SIZE; i++) {
             rowIt.setRow(i);
             if (!isSequenceValid(rowIt)){
-                fatalError("Row check error. isValid - line 159");
+                fatalError("Row check error. isValid");
                 return false;
             }
 
@@ -169,7 +169,7 @@ public class Main {
         for (int i = 0; i < BIG_GRID_SIZE; i++) {
             columnIt.setRow(i);
             if (!isSequenceValid(columnIt)){
-                fatalError("Column check error. isValid - line 169");
+                fatalError("Column check error. isValid");
                 return false;
             }
         }
@@ -179,7 +179,7 @@ public class Main {
             for (int y = 0; y < BIG_GRID_SIZE; y += SMALL_GRID_SIZE) {
                 boxIt.setBox(x, y);
                 if (!isSequenceValid(boxIt)){
-                    fatalError("Box check error. isValid - line 178");
+                    fatalError("Box check error. isValid");
                     return false;
                 }
             }
@@ -221,7 +221,7 @@ public class Main {
      * @return array of possible values for the cell
      */
     public int[] possibleValues(int sudokuBoard[][],int i, int j) {
-        int valuesArray[] = new int[10];
+        int valuesArray[] = new int[BIG_GRID_SIZE+1];
         for (int x = 0; x < BIG_GRID_SIZE; x++) {
             valuesArray[x] = 0;
         }
@@ -273,7 +273,7 @@ public class Main {
         int i,j;
         i = j = 0;
         if(numberOfTries == BIG_GRID_SIZE * SMALL_GRID_SIZE + SMALL_GRID_SIZE){
-            fatalError("Invalid input data. Out of range. bruteForce - line 275");
+            fatalError("Invalid input data. Out of range. bruteForce");
         }
         if(boardFull(sudokuBoard)){
             return true;
@@ -304,13 +304,12 @@ public class Main {
     }
 
     /**
-     * Check if a number is between 0 and 9
+     * Check if a number is between 0 and BIG_GRID_SIZE (9)
      * @param number passed number
-     * @return
+     * @return true or false
      */
     public boolean inRange(int number){
-        boolean range = (number > 0 && number <= BIG_GRID_SIZE);
-        return range;
+        return (number > 0 && number <= BIG_GRID_SIZE);
     }
 
     /**
@@ -319,7 +318,7 @@ public class Main {
      * @throws FileNotFoundException
      */
     public int[][] readAll(String fileName) throws FileNotFoundException{
-        int sudokuBoard[][] = new int[9][9];
+        int sudokuBoard[][] = new int[BIG_GRID_SIZE][BIG_GRID_SIZE];
         for (int[] row : sudokuBoard){
             Arrays.fill(row, 0);
         }
@@ -336,11 +335,11 @@ public class Main {
                     if(inRange(Integer.parseInt(line[2]))) {
                         sudokuBoard[(Integer.parseInt(line[0])) - 1][(Integer.parseInt(line[1])) - 1] = Integer.parseInt(line[2]);
                     } else {
-                        fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 335");
+                        fatalError("Array Index out of Bounds or Number Format is incorrect. readAll");
                     }
 
                 } catch (ArrayIndexOutOfBoundsException | NumberFormatException e){
-                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 335");
+                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll");
                 }
 
             }
@@ -351,7 +350,7 @@ public class Main {
                 if(inRange(Integer.parseInt(line[2]))){
                     sudokuBoard[(Integer.parseInt(line[0])) - 1][(Integer.parseInt(line[1])) - 1] = Integer.parseInt(line[2]);
                 } else {
-                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 349");
+                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll");
                 }
 
             }
@@ -368,7 +367,7 @@ public class Main {
         Main sudoku = new Main();
 
         //our default Sudoku board
-        int sudokuBoard[][] = new int[9][9];
+        int sudokuBoard[][] = new int[BIG_GRID_SIZE][BIG_GRID_SIZE];
         int numberOfTries = 0;
         try {
             if (args.length != 0) {
@@ -378,7 +377,7 @@ public class Main {
             }
 
         } catch (FileNotFoundException | ArrayIndexOutOfBoundsException | NumberFormatException e){
-            sudoku.fatalError("File is missing or corrupted. main - line 373");
+            sudoku.fatalError("File is missing or corrupted.");
         }
 
         //attempt to solve Sudoku
@@ -387,12 +386,12 @@ public class Main {
                 if(sudoku.isValid(sudokuBoard)){
                     sudoku.printSudokuBoard(sudokuBoard);
                 } else {
-                    sudoku.fatalError("Sudoku is not valid. main - line 385");
+                    sudoku.fatalError("Sudoku is not valid.");
                 }
 
             };
         } catch (Exception e) {
-            sudoku.fatalError("Unable to find a solution. main - line 385");
+            sudoku.fatalError("Unable to find a solution.");
         }
 
 
