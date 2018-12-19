@@ -14,7 +14,7 @@ if [[ $1 == "h" ]]; then
   printf "sudokuTest.txt - typical Sudoku puzzle to solve.\n"
   printf "twoInBoxRow.txt - Sudoku puzzle with repeating values in the same row and box, which is against rules.\n"
   printf "empty.txt - empty file with no entries in it.\n"
-#  printf "solved.txt - file with already complete Sudoku.\n"
+  printf "solved.txt - file with already complete Sudoku.\n"
   printf "letter.txt - typical Sudoku puzzle, but with some letters insted of numbers\n"
   printf "unsolvable.txt - Sudoku puzzle with no possible solution\n\n"
 else
