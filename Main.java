@@ -4,6 +4,113 @@ import java.util.Arrays;
 
 public class Main {
 
+    /**
+     * BaseIterator to work with 2D array
+     */
+    public class BaseIterator{
+
+        int[][] sudokuBoard; //array to iterate
+        int index; //current count of iterations
+
+        //custom constractor
+        protected BaseIterator(int[][] sudokuBoard){
+            this.sudokuBoard = sudokuBoard;
+            this.index = 0;
+        }
+
+        //check if we are able to provide more data
+        protected boolean hasNext() {
+            return index < sudokuBoard.length;
+        }
+
+        //template/placeholder for .next() method
+        public int next() {
+            return 1;
+        }
+    }
+
+    /**
+     * Iterator for rows in 2D array
+     */
+    public class RowIterator extends BaseIterator {
+
+        int row; //number of row to iterate throught
+
+        //using parent's custom constructor
+        public RowIterator(int[][] sudokuBoard){
+            super(sudokuBoard);
+        }
+
+        //set which row to iterate and resetting index
+        public void setRow(int row)
+        {
+            this.row = row;
+            this.index = 0;
+        }
+
+        //return next element of a given row
+        @Override
+        public int next() {
+            return sudokuBoard[row][index++];
+        }
+    }
+
+    /**
+     * Iterator for Columns in 2D array
+     */
+    public class ColumnIterator extends BaseIterator{
+
+        int column; //number of column to iterate throught
+
+        //using parent's custom constructor
+        public ColumnIterator(int[][] sudokuBoard){
+            super(sudokuBoard);
+        }
+
+        //set which column to iterate and resetting index
+        public void setRow(int column)
+        {
+            this.column = column;
+            this.index = 0;
+        }
+
+        //return next element of a given column
+        @Override
+        public int next() {
+            return sudokuBoard[index++][column];
+        }
+    }
+
+    /**
+     * Iterator for small boxes in 2D array
+     */
+    public class BoxIterator extends BaseIterator{
+        int row, column; //starting coordinates of a given box to iterate throught
+
+        //using parent's custom constructor
+        public BoxIterator(int[][] sudokuBoard){
+            super(sudokuBoard);
+        }
+
+        //set coordinates of a box and resetting index
+        public void setBox(int row, int column)
+        {
+            this.row = row;
+            this.column = column;
+            index = 0;
+        }
+
+        //return next element of a given box
+        @Override
+        public int next() {
+            int number = sudokuBoard[row + (index / SMALL_GRID_SIZE)][column + (index % SMALL_GRID_SIZE)];
+            index++;
+            return number;
+        }
+
+    }
+
+
     public static final int BIG_GRID_SIZE = 9;
     public static final int SMALL_GRID_SIZE = 3;
     /**
@@ -19,12 +126,64 @@ public class Main {
             System.out.print("\n");
         }
     }
+
+    /**
+     * DeBug Message
+     * @param error
+     */
     public void fatalError(String error){
         System.err.println("\nFailed. " + error + "\n");
         System.exit(1);
-
-
     }
+
+    /**
+     * Check if there is any duplicates in a given sequence
+     * @param
+     * @return true or falce
+     */
+    public boolean isSequenceValid(BaseIterator iterator){
+        int x = 0;
+        while (iterator.hasNext()){
+            x |= (1 << (iterator.next()-1));
+        }
+        return x == (1<<BIG_GRID_SIZE) - 1;
+    }
+
+    /**
+     * Check if there is Sudoku board is valid
+     * @param sudokuBoard Sudoku board
+     * @return  true of false
+     */
+    public boolean isValid(int[][] sudokuBoard){
+        RowIterator rowIt = new RowIterator(sudokuBoard);
+        for (int i = 0; i < BIG_GRID_SIZE; i++) {
+            rowIt.setRow(i);
+            if (!isSequenceValid(rowIt)){
+                return false;
+            }
+
+        }
+
+        ColumnIterator columnIt = new ColumnIterator(sudokuBoard);
+        for (int i = 0; i < BIG_GRID_SIZE; i++) {
+            columnIt.setRow(i);
+            if (!isSequenceValid(columnIt)){
+                return false;
+            }
+        }
+
+        BoxIterator boxIt = new BoxIterator(sudokuBoard);
+        for (int x = 0; x < BIG_GRID_SIZE; x+=SMALL_GRID_SIZE) {
+            for (int y = 0; y < BIG_GRID_SIZE; y += SMALL_GRID_SIZE) {
+                boxIt.setBox(x, y);
+                if (!isSequenceValid(boxIt)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * Check if our Sudoku board is complete
      * @param sudokuBoard our current board/state of it
@@ -40,6 +199,7 @@ public class Main {
         }
         return true;
     }
+
 
     /**
      * Allig number to the grid's starting point
@@ -58,7 +218,7 @@ public class Main {
      * @return array of possible values for the cell
      */
     public int[] possibleValues(int sudokuBoard[][],int i, int j) {
-        int valuesArray[] = new int[10];
+        int valuesArray[] = new int[BIG_GRID_SIZE+1];
         for (int x = 0; x < BIG_GRID_SIZE; x++) {
             valuesArray[x] = 0;
         }
@@ -84,7 +244,7 @@ public class Main {
         //check for values in the box
         for (int x = k; x < (k + SMALL_GRID_SIZE); x++) {
             for (int y = l; y < (l + SMALL_GRID_SIZE); y++) {
-                if (sudokuBoard[i][y] != 0) {
+                if (sudokuBoard[x][y] != 0) {
                     valuesArray[sudokuBoard[x][y]] = 1;
                 }
             }
@@ -110,10 +270,9 @@ public class Main {
         int i,j;
         i = j = 0;
         if(numberOfTries == BIG_GRID_SIZE * SMALL_GRID_SIZE + SMALL_GRID_SIZE){
-            fatalError("Invalid input data. Out of range. bruteForce - line 112");
+            fatalError("Invalid input data. Out of range. bruteForce");
         }
         if(boardFull(sudokuBoard)){
-            //printSudokuBoard(sudokuBoard);
             return true;
         } else {
             for(int x = 0; x < BIG_GRID_SIZE; x++){
@@ -142,13 +301,12 @@ public class Main {
     }
 
     /**
-     * Check if a number is between 0 and 9
+     * Check if a number is between 0 and BIG_GRID_SIZE (9)
      * @param number passed number
-     * @return
+     * @return true or false
      */
     public boolean inRange(int number){
-        boolean range = (number > 0 && number <= BIG_GRID_SIZE);
-        return range;
+        return (number > 0 && number <= BIG_GRID_SIZE);
     }
 
     /**
@@ -157,7 +315,7 @@ public class Main {
      * @throws FileNotFoundException
      */
     public int[][] readAll(String fileName) throws FileNotFoundException{
-        int sudokuBoard[][] = new int[9][9];
+        int sudokuBoard[][] = new int[BIG_GRID_SIZE][BIG_GRID_SIZE];
         for (int[] row : sudokuBoard){
             Arrays.fill(row, 0);
         }
@@ -174,11 +332,11 @@ public class Main {
                     if(inRange(Integer.parseInt(line[2]))) {
                         sudokuBoard[(Integer.parseInt(line[0])) - 1][(Integer.parseInt(line[1])) - 1] = Integer.parseInt(line[2]);
                     } else {
-                        fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 173");
+                        fatalError("Array Index out of Bounds or Number Format is incorrect. readAll");
                     }
 
                 } catch (ArrayIndexOutOfBoundsException | NumberFormatException e){
-                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 173");
+                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll");
                 }
 
             }
@@ -189,7 +347,7 @@ public class Main {
                 if(inRange(Integer.parseInt(line[2]))){
                     sudokuBoard[(Integer.parseInt(line[0])) - 1][(Integer.parseInt(line[1])) - 1] = Integer.parseInt(line[2]);
                 } else {
-                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll - line 187");
+                    fatalError("Array Index out of Bounds or Number Format is incorrect. readAll");
                 }
 
             }
@@ -206,25 +364,31 @@ public class Main {
         Main sudoku = new Main();
 
         //our default Sudoku board
-        int sudokuBoard[][] = new int[9][9];
+        int sudokuBoard[][] = new int[BIG_GRID_SIZE][BIG_GRID_SIZE];
         int numberOfTries = 0;
         try {
             if (args.length != 0) {
                 sudokuBoard = sudoku.readAll(args[0]);
             } else {
-                sudokuBoard = sudoku.readAll("");            }
+                sudokuBoard = sudoku.readAll("");
+            }
 
         } catch (FileNotFoundException | ArrayIndexOutOfBoundsException | NumberFormatException e){
-            sudoku.fatalError("File is missing or corrupted. main - line 211");
+            sudoku.fatalError("File is missing or corrupted.");
         }
 
         //attempt to solve Sudoku
         try {
             if(sudoku.bruteForce(sudokuBoard,numberOfTries)){
-                sudoku.printSudokuBoard(sudokuBoard);
+                if(sudoku.isValid(sudokuBoard)){
+                    sudoku.printSudokuBoard(sudokuBoard);
+                } else {
+                    sudoku.fatalError("Sudoku is not valid.");
+                }
+
             };
         } catch (Exception e) {
-            sudoku.fatalError("Unable to find a solution. main - line 222");
+            sudoku.fatalError("Unable to find a solution.");
         }
 
 
